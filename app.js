@@ -37,6 +37,14 @@ app.use(cors({
   credentials: true
 }));
 
+app.get('/test-cookie', (req, res) => {
+  res.cookie('dummy', 'true', {
+    httpOnly: false,
+    sameSite: 'Lax',
+  });
+  res.send('Cookie dummy definida!');
+});
+
 
 
 //Middlewares
