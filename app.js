@@ -21,7 +21,22 @@ const moduloRoutes = require('./routes/moduloRoutes');
 
 //Configurações
 app.set("port", process.env.PORT || 3000);
-app.use(cors({origin: 'http://localhost:5173', credentials: true}));
+const allowedOrigins = [
+  'https://projeto-front-yg80.onrender.com', // <- domínio do teu frontend no Render
+  'http://localhost:5173' // <- mantém para testes locais
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
 
 //Middlewares
 app.use(cookieParser());
