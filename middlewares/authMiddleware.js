@@ -2,10 +2,7 @@ const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-  const cookieToken = req.cookies?.authToken;
-
-  const token = bearerToken || cookieToken;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
   if (!token) return res.status(401).json({ message: 'Não autenticado' });
 

@@ -14,31 +14,30 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.checkAuth = (req, res) => {
-    try {
-        const authHeader = req.headers['authorization'];
-        if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        res.json({ authenticated: true, user: decoded });
-    } catch (err) {
-        res.status(401).json({ message: 'Token inválido' });
-    }
-};
-
-
 const findUserByEmail = async (email) => {
   let user = await db.Formando.findOne({ where: { Email: email } });
   if (user) return { user, type: "formando" };
 
-  user = await db.Gestor.findOne({ where: { Email: email } });
+  user = await db.Gestor.findOne({ where: { Email } });
   if (user) return { user, type: "gestor" };
 
-  user = await db.Formador.findOne({ where: { Email: email } });
+  user = await db.Formador.findOne({ where: { Email } });
   if (user) return { user, type: "formador" };
 
   return null;
+};
+
+exports.checkAuth = (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ authenticated: true, user: decoded });
+  } catch (err) {
+    res.status(401).json({ message: 'Token inválido' });
+  }
 };
 
 exports.register = async (req, res) => {
@@ -46,17 +45,8 @@ exports.register = async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(Password, 10);
-
-    let newUser;
-    newUser = await db.Formando.create({
-      Nome,
-      Email,
-      Password: hashedPassword,
-    });
-
-    res
-      .status(201)
-      .json({ message: "Utilizador registado com sucesso", user: newUser });
+    const newUser = await db.Formando.create({ Nome, Email, Password: hashedPassword });
+    res.status(201).json({ message: "Utilizador registado com sucesso", user: newUser });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erro ao registar utilizador" });
@@ -66,69 +56,42 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { Email, Password } = req.body;
   try {
-    // 1. Try Formando
     let user = await db.Formando.findOne({ where: { Email } });
     let role = "formando";
 
     if (!user) {
-      // 2. Try Gestor
-      user = await db.Gestor.findOne({ where: { Email: Email } });
+      user = await db.Gestor.findOne({ where: { Email } });
       role = "gestor";
     }
 
-    //  3. Try Formador
     if (!user) {
-      user = await db.Formador.findOne({ where: { Email: Email } });
+      user = await db.Formador.findOne({ where: { Email } });
       role = "formador";
     }
 
-    if (!user) {
-      return res.status(401).json({ message: "Email não encontrado" });
-    }
+    if (!user) return res.status(401).json({ message: "Email não encontrado" });
 
-    // 4. Validate password
     const isValid = await bcrypt.compare(Password, user.Password);
-    if (!isValid) {
-      return res.status(401).json({ message: "Senha incorreta" });
-    }
+    if (!isValid) return res.status(401).json({ message: "Senha incorreta" });
 
-    // 5. Create token
-    let userId;
-    if (role === "formando") {
-      userId = user.ID_Formando;
-    } else if (role === "gestor") {
-      userId = user.ID_Gestor;
-    } else if (role === "formador") {
-      userId = user.ID_Formador;
-    }
+    const userId = role === "formando" ? user.ID_Formando :
+                   role === "gestor" ? user.ID_Gestor :
+                   user.ID_Formador;
 
-    const token = jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign({ id: userId, role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    res.cookie('authToken', token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: 'None',
-  maxAge: 3600000, // 1 hora
-});
-
-
-    return res.json({ user, role });
+    return res.json({ token, user, role }); // ⬅️ envia token no JSON
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "Erro interno" });
+    res.status(500).json({ message: "Erro interno" });
   }
 };
 
 exports.logout = (req, res) => {
-  res.clearCookie("authToken", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "None",
-  });
-  res.status(200).json({ message: "Sessão terminada com sucesso" });
+  res.status(200).json({ message: "Logout realizado" });
 };
+
+
 
 // Solicitar recuperação de senha
 exports.requestPasswordReset = async (req, res) => {
