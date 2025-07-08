@@ -22,8 +22,8 @@ const moduloRoutes = require('./routes/moduloRoutes');
 //Configurações
 app.set("port", process.env.PORT || 3000);
 const allowedOrigins = [
-  'https://projeto-front-yg80.onrender.com', // <- domínio do teu frontend no Render
-  'http://localhost:5173' // <- mantém para testes locais
+  'http://localhost:5173',
+  'https://projeto-front-yg80.onrender.com'
 ];
 
 app.use(cors({
@@ -36,6 +36,7 @@ app.use(cors({
   },
   credentials: true
 }));
+
 
 
 //Middlewares
