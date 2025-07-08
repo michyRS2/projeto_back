@@ -21,11 +21,7 @@ const moduloRoutes = require('./routes/moduloRoutes');
 
 //Configurações
 app.set("port", process.env.PORT || 3000);
-app.use(cors({
-  origin: ['https://projeto-front-yg80.onrender.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'], 
-  credentials: true}));
+app.use(cors());
 
 //Middlewares
 app.use(cookieParser());
