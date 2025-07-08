@@ -93,12 +93,7 @@ exports.login = async (req, res) => {
 
         const token = jwt.sign({ id: userId, role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        res.cookie('authToken', token, {
-            httpOnly: true,        // não acessível via JS (evita XSS)
-            secure: true,          // só em HTTPS
-            sameSite: 'Strict',    // proteção CSRF
-            maxAge: 60 * 60 * 1000 // 1 hora
-        });
+        
 
         return res.json({token, user, role });
     } catch (err) {

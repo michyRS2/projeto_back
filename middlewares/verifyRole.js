@@ -11,7 +11,7 @@ module.exports = (requiredRole) => {
     if (!token) return res.status(401).json({ message: 'Não autenticado' });
 
     try {
-      const decoded = jwt.verify(token, 'your_jwt_secret');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       if (decoded.role !== requiredRole) {
         return res.status(403).json({ message: 'Acesso negado' });
