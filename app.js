@@ -22,7 +22,7 @@ const db = require("./models/index");
 app.set("port", process.env.PORT || 3000);
 
 app.use(cors({
-  origin: 'https://projeto-front-yg80.onrender.com',
+  origin: 'https://projeto-front-yg80.onrender.com', 
   credentials: false 
 }));
 
