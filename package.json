@@ -17,5 +17,8 @@
     "url": "https://github.com/michyRS2/projeto_back/issues"
   },
   "homepage": "https://github.com/michyRS2/projeto_back#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "dotenv": "^17.1.0"
+  }
 }
