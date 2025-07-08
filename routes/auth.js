@@ -4,17 +4,20 @@ const jwt = require('jsonwebtoken');
 const authController = require('../controllers/authController');
 
 
-const verifyToken = (req, res, next) => {
-    const token = req.cookies.authToken;
-    if (!token) return res.status(401).json({ message: 'Não autenticado' });
 
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+
+    const token = authHeader.split(' ')[1]; 
     try {
-        req.user = jwt.verify(token, 'your_jwt_secret');
+        req.user = jwt.verify(token, process.env.JWT_SECRET);
         next();
     } catch (err) {
-        res.status(403).json({ message: 'Token inválido' });
+        return res.status(403).json({ message: 'Token inválido' });
     }
 };
+
 
 
 // Rotas existentes
