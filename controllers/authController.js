@@ -14,6 +14,20 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+exports.checkAuth = (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        if (!authHeader) return res.status(401).json({ message: 'Token não fornecido' });
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        res.json({ authenticated: true, user: decoded });
+    } catch (err) {
+        res.status(401).json({ message: 'Token inválido' });
+    }
+};
+
+
 const findUserByEmail = async (email) => {
   let user = await db.Formando.findOne({ where: { Email: email } });
   if (user) return { user, type: "formando" };
@@ -92,12 +106,13 @@ exports.login = async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.cookie("authToken", token, {
-      httpOnly: true,
-      secure: true, // necessário para HTTPS
-      sameSite: "None", // necessário para cross-origin (domínios diferentes)
-      maxAge: 3600000, // 1 hora
-    });
+    res.cookie('authToken', token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'Strict',
+  maxAge: 3600000, // 1 hora
+});
+
 
     return res.json({ user, role });
   } catch (err) {
